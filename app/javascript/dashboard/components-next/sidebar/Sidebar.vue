@@ -915,6 +915,12 @@ const menuItems = computed(() => {
           to: accountScopedRoute('automation_list'),
         },
         {
+          name: 'Settings Break',
+          label: 'Jam Istirahat',
+          icon: 'i-lucide-coffee',
+          to: accountScopedRoute('break_settings'),
+        },
+        {
           name: 'Settings Agent Bots',
           label: t('SIDEBAR.AGENT_BOTS'),
           icon: 'i-lucide-bot',

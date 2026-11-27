@@ -40,6 +40,8 @@
 #
 
 class Inbox < ApplicationRecord
+  has_one_attached :out_of_office_image
+  attr_accessor :remove_out_of_office_image
   include Reportable
   include Avatarable
   include OutOfOffisable
@@ -85,9 +87,14 @@ class Inbox < ApplicationRecord
 
   after_create_commit :dispatch_create_event
   after_update_commit :dispatch_update_event
+  after_save :purge_out_of_office_image, if: -> { ActiveModel::Type::Boolean.new.cast(remove_out_of_office_image) }
   after_destroy_commit :invalidate_filtered_unread_counts_after_destroy
 
   scope :order_by_name, -> { order('lower(name) ASC') }
+
+  def purge_out_of_office_image
+    out_of_office_image.purge_later if out_of_office_image.attached?
+  end
 
   # Adds multiple members to the inbox
   # @param user_ids [Array<Integer>] Array of user IDs to add as members

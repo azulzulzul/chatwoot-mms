@@ -26,5 +26,17 @@ describe MessageTemplates::Template::OutOfOffice do
         "Hey, #{conversation.contact.name} we are unavailable at the moment. - from #{conversation.account.name}"
       )
     end
+
+    it 'attaches the inbox out of office image to the template message' do
+      image = fixture_file_upload(Rails.root.join('spec', 'fixtures', 'files', 'image.png'), 'image/png')
+      conversation.inbox.out_of_office_image.attach(image)
+
+      described_class.new(conversation: conversation).perform
+
+      message = conversation.messages.template.last
+      expect(message.attachments.size).to eq(1)
+      expect(message.attachments.first.file_type).to eq('image')
+      expect(message.attachments.first.file).to be_attached
+    end
   end
 end

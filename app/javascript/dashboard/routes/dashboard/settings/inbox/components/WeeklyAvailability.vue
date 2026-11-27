@@ -40,6 +40,9 @@ export default {
     return {
       isBusinessHoursEnabled: false,
       unavailableMessage: '',
+      outOfOfficeImageFile: null,
+      outOfOfficeImagePreview: '',
+      removeOutOfOfficeImage: false,
       timeZone: DEFAULT_TIMEZONE,
       dayNames: {
         0: 'Sunday',
@@ -102,6 +105,9 @@ export default {
         : defaultTimeSlot;
       this.isBusinessHoursEnabled = isEnabled;
       this.unavailableMessage = unavailableMessage || '';
+      this.outOfOfficeImagePreview = this.inbox.out_of_office_image_url || '';
+      this.outOfOfficeImageFile = null;
+      this.removeOutOfOfficeImage = false;
       this.timeSlots = slots;
       this.timeZone =
         this.timeZones.find(item => timeZone === item.value) ||
@@ -111,6 +117,18 @@ export default {
       this.timeSlots = this.timeSlots.map(item =>
         item.day === slotIndex ? slotData : item
       );
+    },
+    onOutOfOfficeImageChange(event) {
+      const [file] = event.target.files || [];
+      if (!file) return;
+      this.outOfOfficeImageFile = file;
+      this.outOfOfficeImagePreview = URL.createObjectURL(file);
+      this.removeOutOfOfficeImage = false;
+    },
+    removeOutOfOfficeImageFile() {
+      this.outOfOfficeImageFile = null;
+      this.outOfOfficeImagePreview = '';
+      this.removeOutOfOfficeImage = true;
     },
     async updateInbox() {
       try {
@@ -123,6 +141,12 @@ export default {
           timezone: this.timeZone.value,
           channel: {},
         };
+        if (this.outOfOfficeImageFile) {
+          payload.out_of_office_image = this.outOfOfficeImageFile;
+        }
+        if (this.removeOutOfOfficeImage) {
+          payload.remove_out_of_office_image = true;
+        }
         await this.$store.dispatch('inboxes/updateInbox', payload);
         useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
       } catch (error) {
@@ -153,6 +177,13 @@ export default {
             :min-height="4"
           />
           <textarea v-else v-model="unavailableMessage" type="text" />
+          <div class="mt-4">
+            <img v-if="outOfOfficeImagePreview" :src="outOfOfficeImagePreview" alt="Out-of-office image preview" class="max-h-48 rounded-lg mb-2" />
+            <div class="flex gap-2 items-center">
+              <label class="cursor-pointer"><span class="text-n-brand">{{ outOfOfficeImagePreview ? 'Ganti gambar' : 'Upload gambar' }}</span><input type="file" accept="image/*" class="sr-only" @change="onOutOfOfficeImageChange"></label>
+              <button v-if="outOfOfficeImagePreview" type="button" class="text-n-ruby-9" @click="removeOutOfOfficeImageFile">Hapus gambar</button>
+            </div>
+          </div>
         </div>
       </template>
     </SettingsToggleSection>

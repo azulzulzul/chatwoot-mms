@@ -11,7 +11,9 @@ class MessageTemplates::Template::OutOfOffice
 
   def perform
     ActiveRecord::Base.transaction do
-      conversation.messages.create!(out_of_office_message_params)
+      message = conversation.messages.build(out_of_office_message_params)
+      attach_out_of_office_image(message)
+      message.save!
     end
   rescue StandardError => e
     ChatwootExceptionTracker.new(e, account: conversation.account).capture_exception
@@ -21,7 +23,14 @@ class MessageTemplates::Template::OutOfOffice
   private
 
   delegate :contact, :account, to: :conversation
-  delegate :inbox, to: :message
+
+  def attach_out_of_office_image(message)
+    inbox = conversation.inbox
+    return unless inbox&.out_of_office_image&.attached?
+
+    attachment = message.attachments.build(account_id: message.account_id, file_type: :image)
+    attachment.file.attach(inbox.out_of_office_image.blob)
+  end
 
   def out_of_office_message_params
     content = @conversation.inbox&.out_of_office_message
