@@ -141,13 +141,24 @@ export default {
           timezone: this.timeZone.value,
           channel: {},
         };
-        if (this.outOfOfficeImageFile) {
-          payload.out_of_office_image = this.outOfOfficeImageFile;
-        }
-        if (this.removeOutOfOfficeImage) {
-          payload.remove_out_of_office_image = true;
-        }
         await this.$store.dispatch('inboxes/updateInbox', payload);
+        if (this.outOfOfficeImageFile) {
+          await this.$store.dispatch('inboxes/updateInbox', {
+            id: this.inbox.id,
+            formData: true,
+            out_of_office_image: this.outOfOfficeImageFile,
+            channel: {},
+          });
+          this.outOfOfficeImageFile = null;
+        } else if (this.removeOutOfOfficeImage) {
+          await this.$store.dispatch('inboxes/updateInbox', {
+            id: this.inbox.id,
+            formData: true,
+            remove_out_of_office_image: true,
+            channel: {},
+          });
+          this.removeOutOfOfficeImage = false;
+        }
         useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
       } catch (error) {
         useAlert(error.message || this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
