@@ -132,6 +132,8 @@ export default {
     },
     async updateInbox() {
       try {
+        const imageFile = this.outOfOfficeImageFile;
+        const shouldRemoveImage = this.removeOutOfOfficeImage;
         const payload = {
           id: this.inbox.id,
           formData: false,
@@ -142,15 +144,15 @@ export default {
           channel: {},
         };
         await this.$store.dispatch('inboxes/updateInbox', payload);
-        if (this.outOfOfficeImageFile) {
+        if (imageFile) {
           await this.$store.dispatch('inboxes/updateInbox', {
             id: this.inbox.id,
             formData: true,
-            out_of_office_image: this.outOfOfficeImageFile,
+            out_of_office_image: imageFile,
             channel: {},
           });
           this.outOfOfficeImageFile = null;
-        } else if (this.removeOutOfOfficeImage) {
+        } else if (shouldRemoveImage) {
           await this.$store.dispatch('inboxes/updateInbox', {
             id: this.inbox.id,
             formData: true,
